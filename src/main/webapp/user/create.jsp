@@ -27,12 +27,24 @@
                 <input type="text" class="form-control" id="fullName" name="fullName">
             </div>
             <div class="mb-3">
+                <label for="age" class="form-label">Age</label>
+                <input type="number" required class="form-control" id="age" name="age">
+            </div>
+            <div class="mb-3">
                 <label for="phone" class="form-label">Phone</label>
                 <input type="tel" class="form-control" id="phone" name="phone">
             </div>
             <div class="mb-3">
                 <label for="address" class="form-label">Address</label>
                 <input type="text" class="form-control" id="address" name="address">
+            </div>
+            <div class="mb-3">
+                <label for="cityId" class="form-label">City</label>
+                <select class="form-control" name="cityId" id="cityId">
+                    <c:forEach items="${requestScope['cityList']}" var="item">
+                        <option value="${item.getId()}">${item.getName()}</option>
+                    </c:forEach>
+                </select>
             </div>
             <button type="submit" class="btn btn-outline-primary">Create</button>
         </form>
@@ -44,9 +56,11 @@
                 <li>Thêm mới thành công</li>
             </ul>
         </c:if>
-        <c:if test="${requestScope['error'] == true}">
+        <c:if test="${!requestScope['errors'].isEmpty()}">
             <ul class="error">
-                <li>Thêm mới thất bại</li>
+                <c:forEach items="${requestScope['errors']}" var="item">
+                    <li>${item}</li>
+                </c:forEach>
             </ul>
         </c:if>
     </div>

@@ -1,9 +1,13 @@
 package com.cg.controller;
 
 import com.cg.dto.UserDTO;
+import com.cg.model.City;
 import com.cg.model.User;
+import com.cg.service.CityService;
+import com.cg.service.CityServiceImpl;
 import com.cg.service.UserService;
 import com.cg.service.UserServiceImpl;
+import com.cg.utils.ValidateUtils;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -12,16 +16,19 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @WebServlet(name = "UserServlet", urlPatterns = "/users")
 public class UserServlet extends HttpServlet {
 
     UserService userService;
+    CityService cityService;
 
     @Override
     public void init() throws ServletException {
         userService = new UserServiceImpl();
+        cityService = new CityServiceImpl();
     }
 
     @Override
@@ -48,8 +55,6 @@ public class UserServlet extends HttpServlet {
         }
     }
 
-
-
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String action = req.getParameter("action");
@@ -72,6 +77,9 @@ public class UserServlet extends HttpServlet {
 
     public void showCreatePage(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         RequestDispatcher dispatcher = req.getRequestDispatcher("/user/create.jsp");
+
+        List<City> cityList = cityService.findAll();
+        req.setAttribute("cityList", cityList);
 
         dispatcher.forward(req, resp);
     }
@@ -104,19 +112,51 @@ public class UserServlet extends HttpServlet {
         RequestDispatcher dispatcher = req.getRequestDispatcher("/user/create.jsp");
 
         String fullName = req.getParameter("fullName");
+        String strAge = req.getParameter("age");
         String phone = req.getParameter("phone");
         String address = req.getParameter("address");
+        int cityId = Integer.parseInt(req.getParameter("cityId"));
 
-        User user = new User(fullName, phone, address);
+        List<String> errors = new ArrayList<>();
 
-        boolean success = userService.create(user);
+        boolean ageIsNumber = ValidateUtils.isNumberValid(strAge);
+        int ageLength = strAge.length();
 
-        if (success) {
-            req.setAttribute("success", true);
+        if (!ageIsNumber || ageLength > 3) {
+            errors.add("Age is not valid");
         }
-        else {
-            req.setAttribute("error", true);
+
+        if (errors.size() == 0) {
+            int age = Integer.parseInt(strAge);
+
+            User user = new User(fullName, phone, cityId, address, age);
+
+            boolean exist = cityService.existById(cityId);
+
+            boolean success = false;
+
+            if (exist) {
+                success = userService.create(user);
+            }
+            else {
+                errors.add("City not found");
+            }
+
+            if (success) {
+                req.setAttribute("success", true);
+            }
+            else {
+                req.setAttribute("error", true);
+                errors.add("Invalid data, please check data again!");
+            }
         }
+
+        if (errors.size() > 0) {
+            req.setAttribute("errors", errors);
+        }
+
+        List<City> cityList = cityService.findAll();
+        req.setAttribute("cityList", cityList);
 
         dispatcher.forward(req, resp);
     }

@@ -4,10 +4,7 @@ import com.cg.dto.UserDTO;
 import com.cg.model.User;
 import com.cg.utils.MySQLConnUtils;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +16,7 @@ public class UserServiceImpl implements UserService {
                 "u.full_name, " +
                 "u.phone, " +
                 "u.address, " +
-                "c.code " +
+                "c.name " +
             "FROM users AS u " +
             "JOIN cities AS c " +
             "ON u.city_id = c.id;";
@@ -34,8 +31,10 @@ public class UserServiceImpl implements UserService {
             "WHERE u.id = ?;";
 
     private static String INSERT_USER = "" +
-            "INSERT INTO users(full_name, phone, address)" +
-            "VALUES (?, ?, ?);";
+            "INSERT INTO users(full_name, phone, city_id, address, age)" +
+            "VALUES (?, ?, ?, ?, ?);";
+
+    private static String SP_INSERT_USER = "CALL {sp_insert_user(?, ?, ?, ?, ?)}";
 
     private static String UPDATE_USER_BY_ID = "" +
             "UPDATE users AS u " +
@@ -89,7 +88,7 @@ public class UserServiceImpl implements UserService {
                 String fullName = rs.getString("full_name");
                 String phone = rs.getString("phone");
                 String address = rs.getString("address");
-                String cityName = rs.getString("code");
+                String cityName = rs.getString("name");
 
                 userList.add(new UserDTO(id, fullName, phone, cityName, address));
             }
@@ -106,6 +105,7 @@ public class UserServiceImpl implements UserService {
         User user = null;
         try {
             Connection connection = MySQLConnUtils.getConnection();
+            connection.setAutoCommit(false);
 
             PreparedStatement statement = connection.prepareCall(SELECT_USER_BY_ID);
             statement.setInt(1, userId);
@@ -134,14 +134,26 @@ public class UserServiceImpl implements UserService {
         try {
             Connection connection = MySQLConnUtils.getConnection();
 
-            PreparedStatement statement = connection.prepareCall(INSERT_USER);
+//            PreparedStatement statement = connection.prepareCall(INSERT_USER);
+//            statement.setString(1, user.getFullName());
+//            statement.setString(2, user.getPhone());
+//            statement.setInt(3, user.getCityId());
+//            statement.setString(4, user.getAddress());
+//            statement.setInt(5, user.getAge());
+
+            CallableStatement statement = connection.prepareCall(SP_INSERT_USER);
             statement.setString(1, user.getFullName());
             statement.setString(2, user.getPhone());
-            statement.setString(3, user.getAddress());
+            statement.setInt(3, user.getCityId());
+            statement.setString(4, user.getAddress());
+            statement.setInt(5, user.getAge());
 
-            statement.execute();
+            ResultSet rs =  statement.executeQuery();
 
-            success = true;
+            while (rs.next()) {
+                success = rs.getBoolean("success");
+                String message = rs.getString("message");
+            }
 
         } catch (SQLException e) {
             MySQLConnUtils.printSQLException(e);

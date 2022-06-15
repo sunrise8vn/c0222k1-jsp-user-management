@@ -39,7 +39,7 @@
                         <td>${item.getFullName()}</td>
                         <td>${item.getPhone()}</td>
                         <td>${item.getAddress()}</td>
-                        <td>${item.getCityCode()}</td>
+                        <td>${item.getCityName()}</td>
                         <td>
                             <a href="/users?action=edit&id=${item.getId()}">
                                 <button type="button" class="btn btn-outline-primary">Edit</button>

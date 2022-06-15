@@ -5,17 +5,17 @@ public class UserDTO {
     private int id;
     private String fullName;
     private String phone;
-    private String cityCode;
+    private String cityName;
     private String address;
 
     public UserDTO() {
     }
 
-    public UserDTO(int id, String fullName, String phone, String cityCode, String address) {
+    public UserDTO(int id, String fullName, String phone, String cityName, String address) {
         this.id = id;
         this.fullName = fullName;
         this.phone = phone;
-        this.cityCode = cityCode;
+        this.cityName = cityName;
         this.address = address;
     }
 
@@ -43,12 +43,12 @@ public class UserDTO {
         this.phone = phone;
     }
 
-    public String getCityCode() {
-        return cityCode;
+    public String getCityName() {
+        return cityName;
     }
 
-    public void setCityCode(String cityCode) {
-        this.cityCode = cityCode;
+    public void setCityName(String cityName) {
+        this.cityName = cityName;
     }
 
     public String getAddress() {

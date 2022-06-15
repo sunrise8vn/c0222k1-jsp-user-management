@@ -6,6 +6,7 @@ public class User {
     private String phone;
     private int cityId;
     private String address;
+    private int age;
 
     public User() {
     }
@@ -21,6 +22,21 @@ public class User {
         this.fullName = fullName;
         this.phone = phone;
         this.address = address;
+    }
+
+    public User(String fullName, String phone, int cityId, String address) {
+        this.fullName = fullName;
+        this.phone = phone;
+        this.cityId = cityId;
+        this.address = address;
+    }
+
+    public User(String fullName, String phone, int cityId, String address, int age) {
+        this.fullName = fullName;
+        this.phone = phone;
+        this.cityId = cityId;
+        this.address = address;
+        this.age = age;
     }
 
     public User(int id, String fullName, String phone, int cityId, String address) {
@@ -69,5 +85,13 @@ public class User {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
     }
 }
