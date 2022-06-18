@@ -1,5 +1,9 @@
 package com.cg.model;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Date;
+
 public class User {
     private int id;
     private String fullName;
@@ -7,6 +11,7 @@ public class User {
     private int cityId;
     private String address;
     private int age;
+    private LocalDateTime dob;
 
     public User() {
     }
@@ -46,6 +51,27 @@ public class User {
         this.cityId = cityId;
         this.address = address;
     }
+
+    public User(String fullName, String phone, int cityId, String address, int age, LocalDateTime dob) {
+        this.fullName = fullName;
+        this.phone = phone;
+        this.cityId = cityId;
+        this.address = address;
+        this.age = age;
+        this.dob = dob;
+    }
+
+    public User(int id, String fullName, String phone, int cityId, String address, int age, LocalDateTime dob) {
+        this.id = id;
+        this.fullName = fullName;
+        this.phone = phone;
+        this.cityId = cityId;
+        this.address = address;
+        this.age = age;
+        this.dob = dob;
+    }
+
+
 
     public int getId() {
         return id;
@@ -93,5 +119,13 @@ public class User {
 
     public void setAge(int age) {
         this.age = age;
+    }
+
+    public LocalDateTime getDob() {
+        return dob;
+    }
+
+    public void setDob(LocalDateTime dob) {
+        this.dob = dob;
     }
 }

@@ -31,6 +31,10 @@
                 <input type="number" required class="form-control" id="age" name="age">
             </div>
             <div class="mb-3">
+                <label for="dob" class="form-label">DOB</label>
+                <input type="datetime-local" class="form-control" id="dob" name="dob">
+            </div>
+            <div class="mb-3">
                 <label for="phone" class="form-label">Phone</label>
                 <input type="tel" class="form-control" id="phone" name="phone">
             </div>

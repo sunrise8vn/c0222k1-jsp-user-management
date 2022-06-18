@@ -1,12 +1,16 @@
 package com.cg.service;
 
+import com.cg.dto.OutputDTO;
 import com.cg.dto.UserDTO;
+import com.cg.dto.UserDobDTO;
 import com.cg.model.User;
 import com.cg.utils.MySQLConnUtils;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class UserServiceImpl implements UserService {
 
@@ -30,11 +34,13 @@ public class UserServiceImpl implements UserService {
             "FROM users AS u " +
             "WHERE u.id = ?;";
 
+    private static String SEARCH_BY_DATE = "{CALL sp_search_user_by_date(?, ?, ?)}";
+
     private static String INSERT_USER = "" +
             "INSERT INTO users(full_name, phone, city_id, address, age)" +
             "VALUES (?, ?, ?, ?, ?);";
 
-    private static String SP_INSERT_USER = "CALL {sp_insert_user(?, ?, ?, ?, ?)}";
+    private static String SP_INSERT_USER = "{CALL sp_insert_user(?, ?, ?, ?, ?, ?, ?, ?)}";
 
     private static String UPDATE_USER_BY_ID = "" +
             "UPDATE users AS u " +
@@ -128,18 +134,111 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<UserDobDTO> searchByDate(String dob) {
+        List<UserDobDTO> userList = new ArrayList<>();
+
+        try {
+            Connection connection = MySQLConnUtils.getConnection();
+
+            CallableStatement statement = connection.prepareCall(SEARCH_BY_DATE);
+            statement.setString(1, dob);
+            ResultSet rs = statement.executeQuery();
+
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String fullName = rs.getString("full_name");
+                Date dateOfBirth = rs.getDate("dob");
+                String phone = rs.getString("phone");
+                String address = rs.getString("address");
+                String cityName = rs.getString("name");
+
+                userList.add(new UserDobDTO(id, fullName, dateOfBirth, phone, cityName, address));
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return userList;
+    }
+
+    @Override
+    public Map<String, List<?>> searchByDateMap(String dob) {
+
+        Map<String, List<?>> result = new HashMap<>();
+
+        List<UserDobDTO> userList = new ArrayList<>();
+        List<OutputDTO> outputDTOS = new ArrayList<>();
+
+        try {
+            Connection connection = MySQLConnUtils.getConnection();
+
+            CallableStatement statement = connection.prepareCall(SEARCH_BY_DATE);
+            statement.setString(1, dob);
+            statement.registerOutParameter(2, Types.BOOLEAN);
+            statement.registerOutParameter(3, Types.VARCHAR);
+            ResultSet rss = statement.executeQuery();
+
+            ResultSet rs = statement.getResultSet();
+
+            if (rs != null) {
+                while (rs.next()) {
+                    int id = rs.getInt("id");
+                    String fullName = rs.getString("full_name");
+                    Date dateOfBirth = rs.getDate("dob");
+                    String phone = rs.getString("phone");
+                    String address = rs.getString("address");
+                    String cityName = rs.getString("name");
+
+                    userList.add(new UserDobDTO(id, fullName, dateOfBirth, phone, cityName, address));
+                }
+                result.put("userList", userList);
+            }
+
+            Boolean success = statement.getBoolean("success");
+            String message = statement.getString("message");
+
+            outputDTOS.add(new OutputDTO(success, message));
+
+            result.put("output", outputDTOS);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return result;
+    }
+
+    @Override
     public boolean create(User user) {
         boolean success = false;
 
         try {
             Connection connection = MySQLConnUtils.getConnection();
 
-//            PreparedStatement statement = connection.prepareCall(INSERT_USER);
-//            statement.setString(1, user.getFullName());
-//            statement.setString(2, user.getPhone());
-//            statement.setInt(3, user.getCityId());
-//            statement.setString(4, user.getAddress());
-//            statement.setInt(5, user.getAge());
+            PreparedStatement statement = connection.prepareCall(INSERT_USER);
+            statement.setString(1, user.getFullName());
+            statement.setString(2, user.getPhone());
+            statement.setInt(3, user.getCityId());
+            statement.setString(4, user.getAddress());
+            statement.setInt(5, user.getAge());
+            statement.execute();
+
+            success = true;
+
+        } catch (SQLException e) {
+            MySQLConnUtils.printSQLException(e);
+        }
+
+        return success;
+    }
+
+    @Override
+    public Map<String, String> doCreate(User user) {
+        Map<String, String> result = new HashMap<>();
+
+        try {
+            Connection connection = MySQLConnUtils.getConnection();
 
             CallableStatement statement = connection.prepareCall(SP_INSERT_USER);
             statement.setString(1, user.getFullName());
@@ -147,19 +246,22 @@ public class UserServiceImpl implements UserService {
             statement.setInt(3, user.getCityId());
             statement.setString(4, user.getAddress());
             statement.setInt(5, user.getAge());
+            statement.setString(6, user.getDob().toString());
+            statement.registerOutParameter(7, Types.BOOLEAN);
+            statement.registerOutParameter(8, Types.VARCHAR);
+            statement.execute();
 
-            ResultSet rs =  statement.executeQuery();
+            Boolean success = statement.getBoolean("success");
+            String message = statement.getString("message");
 
-            while (rs.next()) {
-                success = rs.getBoolean("success");
-                String message = rs.getString("message");
-            }
+            result.put("success", success.toString());
+            result.put("message", message);
 
         } catch (SQLException e) {
             MySQLConnUtils.printSQLException(e);
         }
 
-        return success;
+        return result;
     }
 
     @Override
