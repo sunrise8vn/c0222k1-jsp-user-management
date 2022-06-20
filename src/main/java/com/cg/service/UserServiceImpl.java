@@ -50,6 +50,10 @@ public class UserServiceImpl implements UserService {
                 "u.address = ? " +
             "WHERE u.id = ?;";
 
+    private static String DELETE_USER_BY_ID = "" +
+            "DELETE FROM users AS u " +
+            "WHERE u.id = ?;";
+
     @Override
     public List<User> findAll() {
 
@@ -288,6 +292,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean remove(int id) {
-        return false;
+        boolean success = false;
+
+        try {
+            Connection connection = MySQLConnUtils.getConnection();
+            PreparedStatement statement = connection.prepareCall(DELETE_USER_BY_ID);
+            statement.setInt(1, id);
+            statement.execute();
+
+            success = true;
+
+        } catch (SQLException e) {
+            MySQLConnUtils.printSQLException(e);
+        }
+
+        return success;
     }
 }
